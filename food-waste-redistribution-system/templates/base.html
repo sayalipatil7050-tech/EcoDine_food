@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EcoDine AI | Food Waste Prediction & Redistribution{% endblock %}</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <span>EcoDine <span class="brand-sub">AI</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li>
+          <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="fas fa-home"></i> Home
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-pie"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('predict') }}" class="nav-link {% if request.endpoint == 'predict' %}active{% endif %}">
+            <i class="fas fa-brain"></i> Predict Waste
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('donate') }}" class="nav-link {% if request.endpoint == 'donate' %}active{% endif %}">
+            <i class="fas fa-hand-holding-heart"></i> Donate Food
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('redistribution') }}" class="nav-link {% if request.endpoint == 'redistribution' %}active{% endif %}">
+            <i class="fas fa-network-wired"></i> Redistribution
+          </a>
+        </li>
+        {% if current_user and current_user.role == 'admin' %}
+        <li>
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-shield-alt"></i> Admin
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <div class="nav-actions">
+        {% if current_user %}
+          <div class="user-pill" title="Logged in as {{ current_user.org_name }}">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ current_user.username }}</span>
+            <span class="role-badge {{ current_user.role }}">{{ current_user.role }}</span>
+          </div>
+          <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign out">
+            <i class="fas fa-sign-out-alt"></i>
+          </a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm">Sign In</a>
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Register</a>
+        {% endif %}
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container alert-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <div class="alert-content">
+              {% if category == 'success' %}
+                <i class="fas fa-check-circle"></i>
+              {% elif category == 'danger' %}
+                <i class="fas fa-exclamation-triangle"></i>
+              {% elif category == 'warning' %}
+                <i class="fas fa-exclamation-circle"></i>
+              {% else %}
+                <i class="fas fa-info-circle"></i>
+              {% endif %}
+              <span>{{ message }}</span>
+            </div>
+            <button class="alert-close" aria-label="Dismiss alert">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Body -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3><i class="fas fa-leaf text-success"></i> EcoDine AI</h3>
+          <p>
+            AI-Based Food Waste Prediction and Smart Redistribution System. 
+            Bridging surplus food from university dining, cafeterias, and restaurants with registered hunger-relief NGOs and community kitchens.
+          </p>
+          <div style="margin-top: 1rem; display: flex; gap: 0.75rem; font-size: 1.25rem;">
+            <a href="https://github.com" target="_blank" style="color: #94a3b8;" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="#" style="color: #94a3b8;" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" style="color: #94a3b8;" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h5>Core Modules</h5>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('predict') }}">Waste Prediction Model</a></li>
+            <li><a href="{{ url_for('donate') }}">Surplus Food Donation</a></li>
+            <li><a href="{{ url_for('redistribution') }}">Smart Redistribution</a></li>
+            <li><a href="{{ url_for('dashboard') }}">Impact Analytics</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>User Roles</h5>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('quick_login', role='donor') }}">Donor Persona (Canteen)</a></li>
+            <li><a href="{{ url_for('quick_login', role='recipient') }}">Recipient Persona (NGO)</a></li>
+            <li><a href="{{ url_for('quick_login', role='admin') }}">Administrator Console</a></li>
+            <li><a href="{{ url_for('register') }}">Join Network</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Academic Context</h5>
+          <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: #cbd5e1;">
+            <strong>College Digital Thinking Project</strong>
+          </p>
+          <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5;">
+            Aligned with UN SDGs: <strong>SDG 2</strong> (Zero Hunger) & <strong>SDG 12</strong> (Responsible Consumption & Production).
+          </p>
+          <div style="margin-top: 0.75rem;">
+            <span class="section-tag" style="background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.3); font-size: 0.75rem;">
+              <i class="fas fa-graduation-cap"></i> Academic Demo
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; {{ current_year }} EcoDine AI &bull; College Digital Thinking Project. All rights reserved.</p>
+        <p style="font-size: 0.8rem; color: #64748b;">
+          *Notice: Surplus predictions are machine learning estimations for academic planning and demonstration.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}EcoDine AI | Food Waste Prediction and Smart Redistribution System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero-grid">
+    <div class="hero-content">
+      <div class="section-tag">
+        <i class="fas fa-sparkles"></i> AI-Powered Sustainability System
+      </div>
+      <h1>
+        Predict Surplus. <br>
+        <span class="hero-highlight">Prevent Waste.</span> <br>
+        Feed Communities.
+      </h1>
+      <p class="hero-subtitle">
+        An intelligent machine learning platform developed for the <strong>College Digital Thinking Project</strong>. 
+        Forecast surplus meals before they spoil and seamlessly route safe food to verified local NGOs, shelters, and community kitchens in real time.
+      </p>
+
+      <div class="hero-cta">
+        <a href="{{ url_for('donate') }}" class="btn btn-primary btn-lg">
+          <i class="fas fa-hand-holding-heart"></i> Donate Food
+        </a>
+        <a href="{{ url_for('predict') }}" class="btn btn-orange btn-lg">
+          <i class="fas fa-brain"></i> Predict Food Waste
+        </a>
+        <a href="{{ url_for('redistribution') }}" class="btn btn-secondary btn-lg">
+          <i class="fas fa-network-wired"></i> View Live Network
+        </a>
+      </div>
+
+      <!-- Quick Live Impact Strip -->
+      <div class="hero-stats-strip">
+        <div class="hero-stat-item">
+          <h4>{{ metrics.waste_reduced_kg }} kg</h4>
+          <p>Food Waste Diverted</p>
+        </div>
+        <div class="hero-stat-item">
+          <h4>{{ metrics.redistributed_meals }}</h4>
+          <p>Meals Rescued</p>
+        </div>
+        <div class="hero-stat-item">
+          <h4 style="color: var(--accent-orange);">{{ metrics.co2_saved_kg }} kg</h4>
+          <p>CO₂e Emissions Saved</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Interactive Card -->
+    <div class="hero-visual">
+      <div class="visual-card">
+        <div class="visual-header">
+          <div>
+            <span class="pulse-dot"></span>
+            <strong style="font-size: 0.95rem;">Smart Redistribution Network</strong>
+          </div>
+          <span class="status-pill status-available">Live Active</span>
+        </div>
+
+        <div class="visual-flow">
+          <div class="flow-step">
+            <div class="flow-icon" style="color: #ea580c; background: #fff7ed;">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="flow-info">
+              <h5>1. AI Demand Forecasting</h5>
+              <p>Random Forest estimates surplus batch weight based on weather & attendance</p>
+            </div>
+          </div>
+
+          <div class="flow-step">
+            <div class="flow-icon" style="color: #15803d; background: #f0fdf4;">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <div class="flow-info">
+              <h5>2. Safe Food Listing</h5>
+              <p>Canteens & caterers post surplus with shelf-life and cold chain requirements</p>
+            </div>
+          </div>
+
+          <div class="flow-step">
+            <div class="flow-icon" style="color: #0284c7; background: #f0f9ff;">
+              <i class="fas fa-route"></i>
+            </div>
+            <div class="flow-info">
+              <h5>3. Smart Proximity Matching</h5>
+              <p>Proximity & capacity engine matches donations to nearby active shelters</p>
+            </div>
+          </div>
+
+          <div class="flow-step">
+            <div class="flow-icon" style="color: #7c3aed; background: #f5f3ff;">
+              <i class="fas fa-smile-beam"></i>
+            </div>
+            <div class="flow-info">
+              <h5>4. Zero-Waste Redistribution</h5>
+              <p>Volunteers pick up and distribute hot meals before the expiry window closes</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-green btn-sm" style="width: 100%;">
+            Explore Impact Dashboard <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo Fast-Switch Banner for Evaluators -->
+<section style="background-color: var(--bg-cream-dark); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.25rem 0;">
+  <div class="container" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <i class="fas fa-user-tag text-success" style="font-size: 1.25rem;"></i>
+      <div>
+        <strong style="font-size: 0.95rem;">Quick Role Demonstration:</strong>
+        <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 0.5rem;">Test personas without registering:</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <a href="{{ url_for('quick_login', role='donor') }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-store text-success"></i> Donor (Canteen)
+      </a>
+      <a href="{{ url_for('quick_login', role='recipient') }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-hands-helping text-primary"></i> Recipient (NGO)
+      </a>
+      <a href="{{ url_for('quick_login', role='admin') }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-shield-alt text-warning"></i> Administrator
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Key Project Benefits -->
+<section class="features-section">
+  <div class="container">
+    <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+      <div class="section-tag">
+        <i class="fas fa-award"></i> Core Advantages
+      </div>
+      <h2 class="section-title">Designed for Tangible Sustainability</h2>
+      <p class="section-desc" style="margin: 0 auto;">
+        Our Digital Thinking architecture resolves supply-demand disparities between large campus dining halls and hunger-relief organizations.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #f0fdf4; color: #166534;">
+          <i class="fas fa-microchip"></i>
+        </div>
+        <h4>Machine Learning Waste Prediction</h4>
+        <p>
+          Utilizes Scikit-Learn Random Forest Regressor trained on footfall fluctuations, meal preparation quotas, weather events, and day-of-week patterns to forecast surplus quantities.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #fff7ed; color: #ea580c;">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <h4>Time-Critical Urgency Routing</h4>
+        <p>
+          Calculates remaining safe consumption hours in real time. Listings nearing the 4-hour threshold are automatically prioritized with urgent vehicle dispatch alerts.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #f0f9ff; color: #0284c7;">
+          <i class="fas fa-sliders-h"></i>
+        </div>
+        <h4>Multi-Factor Smart Matching</h4>
+        <p>
+          Evaluates donor-to-recipient capacity ratios, geolocation proximity, dietary preferences, and cold-chain storage to achieve maximum food safety and zero wastage.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #fdf2f8; color: #be185d;">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h4>Community Hunger Relief</h4>
+        <p>
+          Directly connects institutional surplus with verified shelters, children's homes, and senior centers, ensuring nutritious warm meals reach vulnerable individuals daily.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #f5f3ff; color: #7c3aed;">
+          <i class="fas fa-globe-americas"></i>
+        </div>
+        <h4>CO₂e Carbon Abatement</h4>
+        <p>
+          Preventing organic waste from rotting in landfills avoids methane emissions. Our dashboard tracks estimated greenhouse gas reductions based on FAO benchmarks.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon" style="background: #ecfdf5; color: #059669;">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h4>Secure Role-Based Access</h4>
+        <p>
+          Equipped with secure password hashing, session tokens, audit logging for all predictions, and an administrator management panel to govern food safety compliance.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section style="background: linear-gradient(135deg, #14532d, #15803d); color: #ffffff; padding: 4rem 0; margin-bottom: 2rem;">
+  <div class="container" style="text-align: center; max-width: 800px;">
+    <h2 style="color: #ffffff; font-size: 2.3rem; margin-bottom: 1rem;">
+      Ready to Eliminate Campus Food Waste?
+    </h2>
+    <p style="font-size: 1.1rem; color: #bbf7d0; margin-bottom: 2rem;">
+      Whether you are running a college canteen, catering service, or an NGO serving the community, join our smart redistribution network today.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="{{ url_for('donate') }}" class="btn btn-orange btn-lg">
+        <i class="fas fa-plus-circle"></i> Post Surplus Food
+      </a>
+      <a href="{{ url_for('predict') }}" class="btn btn-secondary btn-lg" style="background: #ffffff; color: #14532d;">
+        <i class="fas fa-calculator"></i> Run Waste Predictor
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

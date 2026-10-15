@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 520px;">
+  
+  <div class="form-card" style="padding: 2.25rem;">
+    
+    <div style="text-align: center; margin-bottom: 1.75rem;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 50px; height: 50px; font-size: 1.5rem;">
+        <i class="fas fa-leaf"></i>
+      </div>
+      <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.35rem;">Welcome to EcoDine AI</h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem;">
+        Sign in to manage surplus donations, receive claims, or administer the network.
+      </p>
+    </div>
+
+    <!-- Evaluator 1-Click Fast Login Strip -->
+    <div style="background: var(--bg-cream); border: 1px dashed var(--primary-border); border-radius: var(--radius-md); padding: 1.1rem; margin-bottom: 1.75rem;">
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary-green); text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fas fa-graduation-cap"></i> Evaluator Quick Access (1-Click Demo):
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+        <a href="{{ url_for('quick_login', role='donor') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+          <i class="fas fa-store text-success" style="width: 18px;"></i>
+          <span><strong>Donor:</strong> Apex University Canteen</span>
+        </a>
+        <a href="{{ url_for('quick_login', role='recipient') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+          <i class="fas fa-hands-helping text-primary" style="width: 18px;"></i>
+          <span><strong>Recipient:</strong> Annapoorna Hunger Relief</span>
+        </a>
+        <a href="{{ url_for('quick_login', role='admin') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+          <i class="fas fa-shield-alt text-warning" style="width: 18px;"></i>
+          <span><strong>Admin:</strong> Campus Sustainability Cell</span>
+        </a>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; text-align: center; margin-bottom: 1.5rem; color: var(--text-light); font-size: 0.82rem;">
+      <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
+      <span style="padding: 0 0.75rem;">or enter credentials</span>
+      <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
+    </div>
+
+    <form action="{{ url_for('login') }}" method="POST">
+      <div class="form-group">
+        <label class="form-label">Username or Registered Email <span class="req">*</span></label>
+        <div style="position: relative;">
+          <input type="text" name="username_or_email" class="form-control" placeholder="e.g. apex_canteen or admin" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password <span class="req">*</span></label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fas fa-sign-in-alt"></i> Sign In to Account
+        </button>
+      </div>
+    </form>
+
+    <div style="margin-top: 1.75rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+      Don't have an account yet? 
+      <a href="{{ url_for('register') }}" style="font-weight: 700; color: var(--primary-green);">Register here</a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

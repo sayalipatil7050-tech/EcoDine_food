@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Food Waste Prediction | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Header -->
+  <div style="max-width: 800px; margin-bottom: 2.5rem;">
+    <div class="section-tag orange">
+      <i class="fas fa-brain"></i> Machine Learning Demand Forecaster
+    </div>
+    <h1 class="section-title">Food Surplus & Waste Prediction Model</h1>
+    <p class="section-desc">
+      Forecast dining hall and cafeteria surplus food before it spoils. 
+      Powered by a trained <strong>Scikit-Learn Random Forest Regressor</strong> analyzing event size, attendance history, meal categories, and weather conditions.
+    </p>
+  </div>
+
+  <div class="prediction-container">
+    
+    <!-- Left Column: Prediction Input Form -->
+    <div class="form-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700;">
+          <i class="fas fa-sliders text-success"></i> Operational Parameters
+        </h3>
+        <span style="font-size: 0.8rem; color: var(--text-muted);"><span class="req">*</span> Mandatory</span>
+      </div>
+
+      <form action="{{ url_for('predict') }}" method="POST">
+        <div class="form-grid">
+          
+          <!-- Food Category -->
+          <div class="form-group">
+            <label class="form-label">Food Category <span class="req">*</span></label>
+            <select name="food_type" class="form-control" required>
+              <option value="Cooked Meals" {% if form.food_type == 'Cooked Meals' %}selected{% endif %}>Cooked Meals (Rice, Curries, Rotis)</option>
+              <option value="Bakery & Bread" {% if form.food_type == 'Bakery & Bread' %}selected{% endif %}>Bakery & Bread</option>
+              <option value="Fresh Produce" {% if form.food_type == 'Fresh Produce' %}selected{% endif %}>Fresh Produce (Fruits & Veg)</option>
+              <option value="Dairy & Sweets" {% if form.food_type == 'Dairy & Sweets' %}selected{% endif %}>Dairy & Sweets</option>
+              <option value="Packaged Meals" {% if form.food_type == 'Packaged Meals' %}selected{% endif %}>Packaged Meals / Sandwiches</option>
+              <option value="Beverages" {% if form.food_type == 'Beverages' %}selected{% endif %}>Beverages & Soups</option>
+            </select>
+            <div class="form-hint">Density and shelf-life factor vary by type.</div>
+          </div>
+
+          <!-- Event / Venue Type -->
+          <div class="form-group">
+            <label class="form-label">Preparation Venue / Event <span class="req">*</span></label>
+            <select name="event_type" class="form-control" required>
+              <option value="College Canteen" {% if form.event_type == 'College Canteen' %}selected{% endif %}>College Central Canteen</option>
+              <option value="Hostel Mess" {% if form.event_type == 'Hostel Mess' %}selected{% endif %}>Campus Hostel Mess</option>
+              <option value="Buffet / Banquet" {% if form.event_type == 'Buffet / Banquet' %}selected{% endif %}>Buffet / Banquet Hall</option>
+              <option value="Restaurant Daily" {% if form.event_type == 'Restaurant Daily' %}selected{% endif %}>Restaurant Daily Service</option>
+              <option value="Special Event / Festival" {% if form.event_type == 'Special Event / Festival' %}selected{% endif %}>College Festival / Special Event</option>
+            </select>
+          </div>
+
+          <!-- Day of Week -->
+          <div class="form-group">
+            <label class="form-label">Day of the Week <span class="req">*</span></label>
+            <select name="day_of_week" class="form-control" required>
+              {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                <option value="{{ day }}" {% if form.day_of_week == day %}selected{% endif %}>{{ day }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-hint">Weekend attendance drops significantly on campus.</div>
+          </div>
+
+          <!-- Weather Condition -->
+          <div class="form-group">
+            <label class="form-label">Weather / Environment <span class="req">*</span></label>
+            <select name="weather_condition" class="form-control" required>
+              <option value="Sunny/Mild" {% if form.weather_condition == 'Sunny/Mild' %}selected{% endif %}>Sunny / Mild (Normal Footfall)</option>
+              <option value="Hot/Heatwave" {% if form.weather_condition == 'Hot/Heatwave' %}selected{% endif %}>Hot / Heatwave (Lower meal intake)</option>
+              <option value="Rainy/Storm" {% if form.weather_condition == 'Rainy/Storm' %}selected{% endif %}>Rainy / Storm (Sharp attendance drop)</option>
+              <option value="Cold" {% if form.weather_condition == 'Cold' %}selected{% endif %}>Cold (Higher intake)</option>
+            </select>
+          </div>
+
+          <!-- Food Quantity in Kilograms -->
+          <div class="form-group">
+            <label class="form-label">Prepared Batch Quantity (kg) <span class="req">*</span></label>
+            <input type="number" step="0.5" min="1" max="2000" name="quantity_prepared_kg"
+                   class="form-control" value="{{ form.quantity_prepared_kg }}" required>
+            <div class="form-hint">Total cooked weight in kg.</div>
+          </div>
+
+          <!-- Meals Prepared -->
+          <div class="form-group">
+            <label class="form-label">Total Meals Prepared <span class="req">*</span></label>
+            <input type="number" min="5" max="5000" name="meals_prepared"
+                   class="form-control" value="{{ form.meals_prepared }}" required>
+            <div class="form-hint">Expected total portions / plates.</div>
+          </div>
+
+          <!-- Expected Attendance -->
+          <div class="form-group">
+            <label class="form-label">Historical Expected Attendance <span class="req">*</span></label>
+            <input type="number" min="5" max="5000" name="expected_attendance"
+                   class="form-control" value="{{ form.expected_attendance }}" required>
+            <div class="form-hint">Typical historical student/customer count.</div>
+          </div>
+
+          <!-- Meals Consumed or Sold -->
+          <div class="form-group">
+            <label class="form-label">Meals Sold or Consumed <span class="req">*</span></label>
+            <input type="number" min="0" max="5000" name="meals_consumed"
+                   class="form-control" value="{{ form.meals_consumed }}" required>
+            <div class="form-hint">Actual or mid-shift consumed portions.</div>
+          </div>
+
+          <!-- Historical Waste Rate Baseline -->
+          <div class="form-group full-width">
+            <label class="form-label" style="display: flex; justify-content: space-between;">
+              <span>Historical Waste Rate Baseline: <strong id="wasteRateVal">{{ (form.historical_waste_rate * 100) | round }}%</strong></span>
+              <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">Past kitchen average</span>
+            </label>
+            <input type="range" min="0.02" max="0.35" step="0.01" name="historical_waste_rate"
+                   id="wasteRateRange" class="form-control" style="padding: 0.3rem;"
+                   value="{{ form.historical_waste_rate }}"
+                   oninput="document.getElementById('wasteRateVal').innerText = Math.round(this.value * 100) + '%'">
+          </div>
+
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-orange btn-lg" style="width: 100%;">
+            <i class="fas fa-brain"></i> Compute Surplus Prediction
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Prediction Results & Model Insights -->
+    <div>
+      {% if result %}
+        <div class="result-card {{ result.risk_class }}">
+          <div class="result-header">
+            <div>
+              <span class="section-tag orange" style="font-size: 0.75rem; margin-bottom: 0.25rem;">
+                <i class="fas fa-microchip"></i> Prediction Generated
+              </span>
+              <h3 style="font-size: 1.35rem; margin-top: 0.25rem;">Surplus Food Forecast</h3>
+            </div>
+            <span class="result-badge badge-{{ result.risk_class }}">
+              {{ result.risk_level }} Risk
+            </span>
+          </div>
+
+          <!-- Big Stat Display -->
+          <div class="result-stat-display">
+            <div style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+              Estimated Leftover Surplus
+            </div>
+            <div class="result-number">
+              {{ result.predicted_surplus_kg }} <span style="font-size: 1.5rem; font-weight: 600;">kg</span>
+            </div>
+            <div class="result-meals">
+              <i class="fas fa-utensils text-success"></i> Approximately <strong>{{ result.predicted_surplus_meals }} Meals</strong>
+            </div>
+            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+              Surplus Ratio: <strong>{{ result.waste_ratio_pct }}%</strong> of prepared quantity
+            </div>
+          </div>
+
+          <!-- Recommended Action Box -->
+          <div class="action-recommendation">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--primary-green); margin-bottom: 0.4rem; font-size: 0.95rem;">
+              <i class="fas fa-lightbulb"></i> Recommended Action:
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main);">
+              {{ result.recommended_action }}
+            </p>
+          </div>
+
+          <!-- Direct Transfer Button to Food Donation Listing -->
+          <div style="margin-bottom: 1.5rem;">
+            <a href="{{ url_for('donate', food_type=form.food_type, quantity_kg=result.predicted_surplus_kg, meals=result.predicted_surplus_meals, title='Surplus ' ~ form.food_type) }}"
+               class="btn btn-primary btn-lg" style="width: 100%;">
+              <i class="fas fa-share"></i> List This Surplus for Smart Donation
+            </a>
+          </div>
+
+          <!-- ML Model Transparency Metrics -->
+          <div style="background: #ffffff; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+            <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+              <i class="fas fa-code-branch text-primary"></i> Model Architecture & Performance:
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>Algorithm: <strong>{{ result.model_info.algorithm }}</strong></div>
+              <div>Validation R²: <strong>{{ result.model_info.r2_score }}</strong></div>
+              <div>Root Mean Sq Error: <strong>{{ result.model_info.rmse_kg }} kg</strong></div>
+              <div>Training Pipeline: <strong>OneHot + StandardScaler</strong></div>
+            </div>
+          </div>
+
+          <!-- Academic Disclaimer -->
+          <div class="disclaimer-box" style="margin-top: 1rem;">
+            <i class="fas fa-shield-alt text-warning" style="font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem;"></i>
+            <span>
+              <strong>Academic Project Disclaimer:</strong> 
+              Predictions are statistical approximations based on historical regression models. 
+              Always inspect physical hygiene, temperature, and safe food storage limits before completing human redistribution.
+            </span>
+          </div>
+
+        </div>
+      {% else %}
+        <!-- Initial Guidance Card when user has not submitted yet -->
+        <div class="card" style="border: 2px dashed var(--border-color); text-align: center; padding: 3rem 2rem;">
+          <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-soft); color: var(--primary-green); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem;">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3 style="font-size: 1.35rem; margin-bottom: 0.75rem;">AI Waste Predictor Ready</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 440px; margin: 0 auto 1.5rem; line-height: 1.6;">
+            Fill in your kitchen preparation volume, attendance expectations, and environmental factors on the left to compute the predicted leftover volume.
+          </p>
+
+          <div style="background: var(--bg-cream); border-radius: var(--radius-md); padding: 1.25rem; text-align: left; font-size: 0.85rem; border: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">
+              <i class="fas fa-check-circle text-success"></i> Why Predict Before Redistribution?
+            </div>
+            <ul style="padding-left: 1.25rem; color: var(--text-muted); line-height: 1.6;">
+              <li>Alerts recipient NGOs up to <strong>3 hours earlier</strong> to stage pickup vehicles.</li>
+              <li>Calculates optimal portion sizing for tomorrow's batch cooking.</li>
+              <li>Enables automated cold-chain staging before food drops below safe temperatures.</li>
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

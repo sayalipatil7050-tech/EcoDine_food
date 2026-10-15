@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart Redistribution Network | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Page Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div class="section-tag">
+        <i class="fas fa-network-wired"></i> Algorithmic Food Rescue Engine
+      </div>
+      <h1 class="section-title">Smart Redistribution Network</h1>
+      <p class="section-desc">
+        Real-time matching engine linking surplus food donations to recipient NGOs and community kitchens 
+        based on <strong>geographic proximity, capacity ratio, time urgency, and storage requirements</strong>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Post Surplus Food
+      </a>
+      <a href="{{ url_for('predict') }}" class="btn btn-orange btn-sm">
+        <i class="fas fa-brain"></i> Predict Waste
+      </a>
+    </div>
+  </div>
+
+  <!-- Smart Matching Context Bar (Simulate or view as Recipient) -->
+  <div class="card" style="margin-bottom: 1.5rem; background: #ffffff; border-left: 4px solid var(--primary-green); padding: 1.25rem 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-green); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+          <i class="fas fa-sliders"></i>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
+            Active Recipient Matching Perspective
+          </div>
+          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">
+            {{ recipient_profile.org_name }} 
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+              ({{ recipient_profile.city }} &bull; Capacity: <strong>{{ recipient_profile.capacity_servings }}</strong> servings)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Persona Switcher for Evaluators -->
+      <form method="GET" action="{{ url_for('redistribution') }}" style="display: flex; align-items: center; gap: 0.5rem;" class="no-spin">
+        <input type="hidden" name="status" value="{{ current_filters.status }}">
+        <input type="hidden" name="city" value="{{ current_filters.city }}">
+        <input type="hidden" name="food_type" value="{{ current_filters.food_type }}">
+        <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Simulate Recipient Match:</label>
+        <select name="demo_recipient" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onchange="this.form.submit()">
+          {% for r in recipient_options %}
+            <option value="{{ r.id }}" {% if recipient_profile.id == r.id %}selected{% endif %}>
+              {{ r.org_name }} (Cap: {{ r.capacity_servings }})
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="filter-bar">
+    <form method="GET" action="{{ url_for('redistribution') }}" style="display: flex; flex-wrap: wrap; gap: 0.75rem; width: 100%; align-items: center; justify-content: space-between;" class="no-spin">
+      
+      <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center;">
+        <!-- Search Input -->
+        <div style="position: relative; min-width: 220px;">
+          <input type="text" name="q" class="form-control" placeholder="Search food, donor, dock..."
+                 value="{{ current_filters.q }}" style="padding-left: 2.2rem; font-size: 0.88rem;">
+          <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.85rem;"></i>
+        </div>
+
+        <!-- Status Filter -->
+        <select name="status" class="form-control" style="width: auto; font-size: 0.88rem;" onchange="this.form.submit()">
+          <option value="Available" {% if current_filters.status == 'Available' %}selected{% endif %}>Status: Available (Active)</option>
+          <option value="All" {% if current_filters.status == 'All' %}selected{% endif %}>Status: All Statuses</option>
+          <option value="Requested" {% if current_filters.status == 'Requested' %}selected{% endif %}>Status: Requested</option>
+          <option value="Claimed" {% if current_filters.status == 'Claimed' %}selected{% endif %}>Status: In-Transit / Claimed</option>
+          <option value="Redistributed" {% if current_filters.status == 'Redistributed' %}selected{% endif %}>Status: Redistributed</option>
+        </select>
+
+        <!-- Food Category Filter -->
+        <select name="food_type" class="form-control" style="width: auto; font-size: 0.88rem;" onchange="this.form.submit()">
+          <option value="">All Categories</option>
+          {% for ft in food_types %}
+            <option value="{{ ft }}" {% if current_filters.food_type == ft %}selected{% endif %}>{{ ft }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- City Filter -->
+        <select name="city" class="form-control" style="width: auto; font-size: 0.88rem;" onchange="this.form.submit()">
+          <option value="">All Cities</option>
+          {% for ct in cities %}
+            <option value="{{ ct }}" {% if current_filters.city == ct %}selected{% endif %}>{{ ct }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-secondary btn-sm">
+          <i class="fas fa-filter"></i> Filter
+        </button>
+        <a href="{{ url_for('redistribution') }}" class="btn btn-sm" style="color: var(--text-muted);">
+          Reset
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Listings Grid -->
+  {% if listings %}
+    <div class="listings-grid">
+      {% for item in listings %}
+        <div class="donation-card {% if highlight_id and highlight_id == item.id %}highlight{% endif %}">
+          
+          <!-- Card Header & Match Badge -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; padding-right: 6.5rem;">
+              <span class="status-pill status-{{ item.status | lower }}">
+                <i class="fas fa-circle" style="font-size: 0.45rem;"></i> {{ item.status }}
+              </span>
+            </div>
+
+            <!-- Smart Match Score Badge (Calculated by matching.py) -->
+            <div class="match-score-badge" title="Algorithmic Match Score: {{ item.smart_match.match_score }}%">
+              <i class="fas fa-bolt"></i> {{ item.smart_match.match_score }}% Match
+            </div>
+
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem; line-height: 1.3;">
+              {{ item.food_title }}
+            </h3>
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              <i class="fas fa-building text-primary"></i> <strong>{{ item.org_name }}</strong> 
+              &bull; {{ item.donor_name }}
+            </div>
+
+            <!-- Tag List -->
+            <div class="tag-list">
+              <span class="tag">{{ item.food_type }}</span>
+              <span class="tag" style="background: #f0fdf4; color: #15803d; font-weight: 700;">
+                <i class="fas fa-leaf" style="font-size: 0.7rem;"></i> {{ item.dietary_type }}
+              </span>
+              <span class="tag tag-storage">
+                <i class="fas fa-temperature-low" style="font-size: 0.7rem;"></i> {{ item.storage_requirement }}
+              </span>
+              {% if item.smart_match.hours_left <= 4 and item.status == 'Available' %}
+                <span class="tag tag-urgent">
+                  <i class="fas fa-hourglass-half"></i> Urgency: {{ item.smart_match.hours_left }}h left!
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Donation Meta -->
+            <div class="donation-meta">
+              <div class="meta-item">
+                <span class="meta-label">Quantity</span>
+                <span class="meta-val" style="color: var(--primary-green); font-size: 1.1rem;">
+                  {{ item.quantity_kg }} kg
+                </span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Estimated Yield</span>
+                <span class="meta-val">~{{ item.estimated_meals }} Meals</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Pickup Location</span>
+                <span class="meta-val" style="font-size: 0.82rem;" title="{{ item.pickup_address }}">
+                  <i class="fas fa-map-marker-alt text-danger"></i> {{ item.city }}
+                </span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Safe Deadline</span>
+                <span class="meta-val" style="font-size: 0.82rem;">
+                  {{ item.expiry_datetime[11:16] if item.expiry_datetime|length >= 16 else item.expiry_datetime }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Handling notes if any -->
+            {% if item.notes %}
+              <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-cream); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem; border-left: 3px solid var(--border-color);">
+                <i class="fas fa-info-circle text-muted"></i> {{ item.notes }}
+              </div>
+            {% endif %}
+
+            <!-- Algorithmic Score Breakdown Accordion / Details -->
+            <details style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem; cursor: pointer;">
+              <summary style="font-weight: 600; color: var(--primary-green);">
+                <i class="fas fa-chart-pie"></i> View Match Factor Breakdown ({{ item.smart_match.match_score }}/100)
+              </summary>
+              <div style="margin-top: 0.5rem; padding: 0.5rem; background: #fafbfc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                {% for b in item.smart_match.breakdown %}
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                    <span><strong>{{ b[0] }}:</strong> {{ b[2] }}</span>
+                    <span style="font-weight: 700; color: var(--primary-dark);">+{{ b[1] }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </details>
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Donor Contact:</span>
+              <a href="tel:{{ item.contact_phone }}" style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
+                <i class="fas fa-phone-alt text-success"></i> {{ item.contact_phone }}
+              </a>
+            </div>
+
+            <div>
+              {% if item.status == 'Available' %}
+                <button type="button" class="btn btn-primary btn-sm open-claim-modal"
+                        data-id="{{ item.id }}"
+                        data-title="{{ item.food_title }}"
+                        data-qty="{{ item.quantity_kg }}"
+                        data-meals="{{ item.estimated_meals }}"
+                        data-donor="{{ item.org_name }}"
+                        data-address="{{ item.pickup_address }}, {{ item.city }}">
+                  <i class="fas fa-truck-pickup"></i> Claim / Request Food
+                </button>
+              {% elif item.status == 'Requested' %}
+                <span class="status-pill status-requested">
+                  <i class="fas fa-clock"></i> Request Pending
+                </span>
+              {% elif item.status == 'Claimed' %}
+                <span class="status-pill status-claimed">
+                  <i class="fas fa-truck"></i> Vehicle Dispatched
+                </span>
+              {% elif item.status == 'Redistributed' %}
+                <span class="status-pill status-redistributed">
+                  <i class="fas fa-check-double"></i> Rescued & Served
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fas fa-box-open empty-icon"></i>
+      <h3 class="empty-title">No Surplus Food Listings Found</h3>
+      <p class="empty-desc">
+        No active donations match the selected filters. Try broadening your filter parameters or post a new food surplus donation.
+      </p>
+      <div style="display: flex; gap: 0.75rem; justify-content: center;">
+        <a href="{{ url_for('redistribution', status='All') }}" class="btn btn-secondary btn-sm">View All Listings</a>
+        <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">Donate Surplus Food</a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Claim / Request Food Modal Dialog -->
+<div class="modal-overlay" id="claimFoodModal">
+  <div class="modal-box">
+    <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+    
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-green); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+        <i class="fas fa-truck-pickup"></i>
+      </div>
+      <div>
+        <h3 style="font-size: 1.3rem; margin: 0;">Confirm Food Claim & Pickup</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Notify donor and coordinate vehicle dispatch.</p>
+      </div>
+    </div>
+
+    <!-- Target Item Details Preview -->
+    <div style="background: var(--bg-cream); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+      <h4 id="modalFoodTitle" style="font-size: 1.1rem; color: var(--primary-green); margin-bottom: 0.25rem;"></h4>
+      <div id="modalDonationDetails" style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5;"></div>
+    </div>
+
+    <form action="{{ url_for('claim_food') }}" method="POST">
+      <input type="hidden" name="donation_id" id="modalDonationId">
+
+      <div class="form-group">
+        <label class="form-label">Recipient Organization Name <span class="req">*</span></label>
+        <input type="text" name="recipient_org" class="form-control" 
+               value="{{ current_user.org_name if current_user and current_user.role == 'recipient' else recipient_profile.org_name }}" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Coordinator Name <span class="req">*</span></label>
+          <input type="text" name="contact_name" class="form-control" 
+                 value="{{ current_user.contact_person if current_user else recipient_profile.contact_person }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Coordinator Phone <span class="req">*</span></label>
+          <input type="tel" name="contact_phone" class="form-control" 
+                 value="{{ current_user.phone if current_user else recipient_profile.phone }}" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Pickup Transport Vehicle <span class="req">*</span></label>
+          <select name="pickup_vehicle_type" class="form-control" required>
+            <option value="Van / Mini-Truck">Insulated Van / Mini-Truck</option>
+            <option value="Car / Auto">Car / Auto-Rickshaw</option>
+            <option value="Two-Wheeler">Two-Wheeler with Delivery Box</option>
+            <option value="On-Foot / Volunteer">On-Foot Volunteer Carrier</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Beneficiaries Count <span class="req">*</span></label>
+          <input type="number" min="5" max="2000" name="beneficiary_count" class="form-control" 
+                 value="{{ recipient_profile.capacity_servings or 60 }}" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estimated Arrival Time for Pickup <span class="req">*</span></label>
+        <input type="time" name="estimated_pickup_time" id="estimatedPickupTime" class="form-control" required>
+        <div class="form-hint">Please schedule arrival well before the donor kitchen closes.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Pickup Coordination Notes</label>
+        <textarea name="request_notes" class="form-control" style="min-height: 60px;"
+                  placeholder="e.g. Volunteer driver will arrive with stainless steel carrier boxes."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary cancel-claim-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-check"></i> Dispatch Claim Confirmation
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

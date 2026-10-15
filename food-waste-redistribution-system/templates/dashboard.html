@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div class="section-tag">
+        <i class="fas fa-chart-line"></i> Real-Time Impact Tracking
+      </div>
+      <h1 class="section-title">Food Waste & Redistribution Analytics</h1>
+      <p class="section-desc">
+        Aggregated metrics illustrating campus food recovery, environmental footprint mitigation, and hunger-relief dispatch.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> New Donation
+      </a>
+      <a href="{{ url_for('predict') }}" class="btn btn-orange btn-sm">
+        <i class="fas fa-brain"></i> AI Predictor
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="metrics-grid">
+    <!-- Total Listings -->
+    <div class="stat-card">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ metrics.total_listings }}</h3>
+        <p>Total Food Listings</p>
+        <span class="stat-sub">{{ metrics.donors_count }} Donors &bull; {{ metrics.recipients_count }} Recipient NGOs</span>
+      </div>
+    </div>
+
+    <!-- Available Surplus Food -->
+    <div class="stat-card orange">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-box-open"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ metrics.available_kg }} <span style="font-size: 1.1rem; font-weight: 600;">kg</span></h3>
+        <p>Active Available Surplus</p>
+        <span class="stat-sub">~{{ metrics.available_meals }} meals ready for claiming</span>
+      </div>
+    </div>
+
+    <!-- Successfully Redistributed -->
+    <div class="stat-card blue">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-hands-helping"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ metrics.redistributed_kg }} <span style="font-size: 1.1rem; font-weight: 600;">kg</span></h3>
+        <p>Successfully Redistributed</p>
+        <span class="stat-sub">~{{ metrics.redistributed_meals }} meals delivered safely</span>
+      </div>
+    </div>
+
+    <!-- Waste Reduced & CO2 Saved -->
+    <div class="stat-card purple">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-seedling"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ metrics.waste_reduced_kg }} <span style="font-size: 1.1rem; font-weight: 600;">kg</span></h3>
+        <p>Waste Diverted From Landfill</p>
+        <span class="stat-sub">~{{ metrics.co2_saved_kg }} kg CO₂e greenhouse gas averted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Visualizations Row -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;" class="chart-row">
+    <!-- Chart 1: Redistribution Status Overview -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-chart-bar text-success"></i> Food Redistribution Flow (kg)
+        </h3>
+        <span class="section-tag" style="font-size: 0.75rem; margin-bottom: 0;">Live Tracking</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Comparison between currently available surplus, in-transit claims, and finalized distributions.
+      </p>
+      <div style="height: 280px; position: relative;">
+        <canvas id="statusChart"
+          data-available="{{ metrics.available_kg }}"
+          data-claimed="{{ metrics.status_breakdown.Claimed.kg if 'Claimed' in metrics.status_breakdown else 0 }}"
+          data-redistributed="{{ metrics.redistributed_kg }}">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Category Breakdown -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-pie-chart" style="color: var(--accent-orange);"></i> Surplus Volume by Food Category
+        </h3>
+        <span class="section-tag orange" style="font-size: 0.75rem; margin-bottom: 0;">Categorical</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Distribution of rescued ingredients across hot meals, bakery, produce, and packaged rations.
+      </p>
+      <div style="height: 280px; position: relative;">
+        <canvas id="categoryChart"
+          data-labels='{{ metrics.type_breakdown | map(attribute="food_type") | list | tojson }}'
+          data-values='{{ metrics.type_breakdown | map(attribute="total_kg") | list | tojson }}'>
+        </canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity & Status Table -->
+  <div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">
+          <i class="fas fa-history text-primary"></i> Recent Surplus Listings & Redistribution Activity
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Latest donations registered by campus dining facilities and restaurants.
+        </p>
+      </div>
+      <a href="{{ url_for('redistribution') }}" class="btn btn-outline-green btn-sm">
+        View All Listings <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    {% if metrics.recent_donations %}
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Food Item / Description</th>
+              <th>Donor Facility</th>
+              <th>Food Category</th>
+              <th>Quantity (kg)</th>
+              <th>Est. Meals</th>
+              <th>City</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in metrics.recent_donations %}
+              <tr>
+                <td>
+                  <strong>{{ d.food_title }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">Listed on {{ d.created_at[:16] }}</div>
+                </td>
+                <td>{{ d.org_name }}</td>
+                <td>
+                  <span class="tag">{{ d.food_type }}</span>
+                </td>
+                <td><strong>{{ d.quantity_kg }} kg</strong></td>
+                <td>~{{ d.estimated_meals }}</td>
+                <td><i class="fas fa-map-marker-alt text-muted" style="font-size: 0.8rem;"></i> {{ d.city }}</td>
+                <td>
+                  {% if d.status == 'Available' %}
+                    <span class="status-pill status-available"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Available</span>
+                  {% elif d.status == 'Requested' %}
+                    <span class="status-pill status-requested"><i class="fas fa-clock" style="font-size: 0.5rem;"></i> Requested</span>
+                  {% elif d.status == 'Claimed' %}
+                    <span class="status-pill status-claimed"><i class="fas fa-truck" style="font-size: 0.5rem;"></i> In Transit</span>
+                  {% elif d.status == 'Redistributed' %}
+                    <span class="status-pill status-redistributed"><i class="fas fa-check" style="font-size: 0.5rem;"></i> Redistributed</span>
+                  {% else %}
+                    <span class="status-pill status-cancelled">{{ d.status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('redistribution', highlight=d.id) }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+                    View
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-clipboard empty-icon"></i>
+        <h4 class="empty-title">No Food Listings Found</h4>
+        <p class="empty-desc">Begin by adding the first surplus food listing from your dining hall or kitchen.</p>
+        <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">Donate Surplus Food</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Environmental Standards Disclaimer Note -->
+  <div class="disclaimer-box">
+    <i class="fas fa-info-circle text-primary" style="font-size: 1.1rem; margin-top: 0.15rem;"></i>
+    <div>
+      <strong>Demonstration & Calculation Methodology:</strong> 
+      Landfill waste prevention calculates cumulative kilograms of perishable food diverted from municipal dumping. 
+      CO₂e equivalents use standard UN Food and Agriculture Organization (FAO) carbon-intensity coefficients (~2.5 kg CO₂e per 1 kg food rescued).
+      All figures are synthesized for college project demonstration and evaluation.
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 900px) {
+  .chart-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

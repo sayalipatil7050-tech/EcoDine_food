@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 680px;">
+  
+  <div class="form-card" style="padding: 2.5rem;">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h2 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.35rem;">Join the Redistribution Network</h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem;">
+        Register your dining hall, cafeteria, restaurant, or hunger-relief organization.
+      </p>
+    </div>
+
+    <form action="{{ url_for('register') }}" method="POST">
+      <div class="form-grid">
+        
+        <!-- Role Selection -->
+        <div class="form-group full-width">
+          <label class="form-label">Select Your Account Type <span class="req">*</span></label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <label style="border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: var(--transition-fast);" class="role-selector">
+              <input type="radio" name="role" value="donor" checked style="accent-color: var(--primary-green);">
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--text-main);">
+                  <i class="fas fa-store text-success"></i> Food Donor
+                </strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Canteen, Hostel Mess, Restaurant</span>
+              </div>
+            </label>
+
+            <label style="border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: var(--transition-fast);" class="role-selector">
+              <input type="radio" name="role" value="recipient" style="accent-color: var(--primary-green);">
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--text-main);">
+                  <i class="fas fa-hands-helping text-primary"></i> Recipient Org
+                </strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">NGO, Shelter, Food Pantry</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Organization Name -->
+        <div class="form-group full-width">
+          <label class="form-label">Organization / Facility Name <span class="req">*</span></label>
+          <input type="text" name="org_name" class="form-control" 
+                 placeholder="e.g. Apex Engineering College Central Canteen or Annapoorna Food NGO"
+                 value="{{ form_data.org_name if form_data else '' }}" required>
+        </div>
+
+        <!-- Contact Person Name -->
+        <div class="form-group">
+          <label class="form-label">Contact Person / Coordinator <span class="req">*</span></label>
+          <input type="text" name="contact_person" class="form-control" placeholder="e.g. Chef Sundar Rajan"
+                 value="{{ form_data.contact_person if form_data else '' }}" required>
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+          <label class="form-label">Choose Username <span class="req">*</span></label>
+          <input type="text" name="username" class="form-control" placeholder="e.g. apex_canteen"
+                 value="{{ form_data.username if form_data else '' }}" required>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Official Email Address <span class="req">*</span></label>
+          <input type="email" name="email" class="form-control" placeholder="e.g. canteen@apexuniv.edu"
+                 value="{{ form_data.email if form_data else '' }}" required>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label class="form-label">Contact Phone Number <span class="req">*</span></label>
+          <input type="tel" name="phone" class="form-control" placeholder="e.g. +91 98450 12345"
+                 value="{{ form_data.phone if form_data else '' }}" required>
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label class="form-label">City / Zone <span class="req">*</span></label>
+          <input type="text" name="city" class="form-control" placeholder="e.g. Metro City"
+                 value="{{ form_data.city if form_data else 'Metro City' }}" required>
+        </div>
+
+        <!-- Capacity Servings -->
+        <div class="form-group">
+          <label class="form-label">Daily Capacity / Servings</label>
+          <input type="number" min="10" max="5000" name="capacity_servings" class="form-control"
+                 placeholder="e.g. 150" value="{{ form_data.capacity_servings if form_data else '100' }}">
+          <div class="form-hint">Number of meals prepared (donors) or served (NGOs).</div>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group full-width">
+          <label class="form-label">Address / Landmark <span class="req">*</span></label>
+          <textarea name="address" class="form-control" style="min-height: 70px;"
+                    placeholder="e.g. Academic Block 3, North Campus Gate, Ring Road" required>{{ form_data.address if form_data else '' }}</textarea>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password <span class="req">*</span></label>
+          <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" required>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">Confirm Password <span class="req">*</span></label>
+          <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fas fa-check"></i> Complete Registration
+        </button>
+      </div>
+    </form>
+
+    <div style="margin-top: 1.75rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+      Already have an account? 
+      <a href="{{ url_for('login') }}" style="font-weight: 700; color: var(--primary-green);">Sign in here</a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

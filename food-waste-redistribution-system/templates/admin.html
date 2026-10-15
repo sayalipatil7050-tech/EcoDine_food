@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Console | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Page Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div class="section-tag" style="background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe;">
+        <i class="fas fa-shield-alt"></i> Central System Management
+      </div>
+      <h1 class="section-title">Administrator Console</h1>
+      <p class="section-desc">
+        Comprehensive surveillance of food donations, NGO pickup requests, machine learning predictions, and network participants.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <form action="{{ url_for('reset_demo_data') }}" method="POST" onsubmit="return confirm('Reset and re-seed the SQLite database with fresh demonstration records?');" class="no-spin">
+        <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626; border-color: #fecaca;">
+          <i class="fas fa-undo"></i> Reset Demo Database
+        </button>
+      </form>
+      <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> New Listing
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="metrics-grid">
+    <div class="stat-card">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-list-check"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ donations | length }}</h3>
+        <p>Total Surplus Listings</p>
+      </div>
+    </div>
+
+    <div class="stat-card orange">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-truck-fast"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ requests | length }}</h3>
+        <p>Redistribution Requests</p>
+      </div>
+    </div>
+
+    <div class="stat-card blue">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ users | length }}</h3>
+        <p>Registered Entities</p>
+      </div>
+    </div>
+
+    <div class="stat-card purple">
+      <div class="stat-icon-wrapper">
+        <i class="fas fa-brain"></i>
+      </div>
+      <div class="stat-details">
+        <h3>{{ predictions | length }}</h3>
+        <p>AI Prediction Runs</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Management Tabs Container -->
+  <div class="card" style="padding: 1.5rem 1.75rem; margin-bottom: 2rem;">
+    
+    <!-- Tab Navigation -->
+    <div style="display: flex; border-bottom: 2px solid var(--border-color); gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+      <button class="tab-btn active" onclick="switchAdminTab('donationsTab', this)" style="background: none; border: none; font-size: 1rem; font-weight: 700; color: var(--primary-green); padding: 0.5rem 1rem; border-bottom: 3px solid var(--primary-green); cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fas fa-utensils"></i> Food Listings ({{ donations | length }})
+      </button>
+      <button class="tab-btn" onclick="switchAdminTab('requestsTab', this)" style="background: none; border: none; font-size: 1rem; font-weight: 600; color: var(--text-muted); padding: 0.5rem 1rem; border-bottom: 3px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fas fa-hands-helping"></i> Redistribution Claims ({{ requests | length }})
+      </button>
+      <button class="tab-btn" onclick="switchAdminTab('predictionsTab', this)" style="background: none; border: none; font-size: 1rem; font-weight: 600; color: var(--text-muted); padding: 0.5rem 1rem; border-bottom: 3px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fas fa-microchip"></i> Prediction Audit Log ({{ predictions | length }})
+      </button>
+      <button class="tab-btn" onclick="switchAdminTab('usersTab', this)" style="background: none; border: none; font-size: 1rem; font-weight: 600; color: var(--text-muted); padding: 0.5rem 1rem; border-bottom: 3px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fas fa-users-cog"></i> Users & Organizations ({{ users | length }})
+      </button>
+    </div>
+
+    <!-- TAB 1: ALL FOOD LISTINGS -->
+    <div id="donationsTab" class="tab-content">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Food Item</th>
+              <th>Donor Facility</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>City</th>
+              <th>Expiry Deadline</th>
+              <th>Status</th>
+              <th>Update Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in donations %}
+              <tr>
+                <td>#{{ d.id }}</td>
+                <td>
+                  <strong>{{ d.food_title }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">{{ d.dietary_type }} &bull; {{ d.storage_requirement }}</div>
+                </td>
+                <td>
+                  {{ d.org_name }}
+                  <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-phone-alt"></i> {{ d.contact_phone }}</div>
+                </td>
+                <td><strong>{{ d.quantity_kg }} kg</strong> (~{{ d.estimated_meals }} meals)</td>
+                <td><span class="tag">{{ d.food_type }}</span></td>
+                <td>{{ d.city }}</td>
+                <td>
+                  <span style="font-size: 0.8rem; font-weight: 600;">{{ d.expiry_datetime }}</span>
+                </td>
+                <td>
+                  <span class="status-pill status-{{ d.status | lower }}">{{ d.status }}</span>
+                </td>
+                <td>
+                  <form action="{{ url_for('update_donation_status') }}" method="POST" style="display: flex; gap: 0.4rem;" class="no-spin">
+                    <input type="hidden" name="donation_id" value="{{ d.id }}">
+                    <select name="new_status" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                      <option value="Available" {% if d.status == 'Available' %}selected{% endif %}>Available</option>
+                      <option value="Requested" {% if d.status == 'Requested' %}selected{% endif %}>Requested</option>
+                      <option value="Claimed" {% if d.status == 'Claimed' %}selected{% endif %}>Claimed</option>
+                      <option value="Redistributed" {% if d.status == 'Redistributed' %}selected{% endif %}>Redistributed</option>
+                      <option value="Cancelled" {% if d.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem;" title="Update">
+                      <i class="fas fa-check"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: REDISTRIBUTION CLAIMS & REQUESTS -->
+    <div id="requestsTab" class="tab-content" style="display: none;">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Food Item</th>
+              <th>Claiming Recipient</th>
+              <th>Coordinator Contact</th>
+              <th>Vehicle Type</th>
+              <th>Beneficiaries</th>
+              <th>Estimated ETA</th>
+              <th>Match Score</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in requests %}
+              <tr>
+                <td>#REQ-{{ r.id }}</td>
+                <td>
+                  <strong>{{ r.food_title }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">{{ r.quantity_kg }} kg &bull; {{ r.donation_city }}</div>
+                </td>
+                <td><strong>{{ r.recipient_org }}</strong></td>
+                <td>
+                  {{ r.contact_name }}
+                  <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-phone-alt"></i> {{ r.contact_phone }}</div>
+                </td>
+                <td>
+                  <span class="tag"><i class="fas fa-truck"></i> {{ r.pickup_vehicle_type }}</span>
+                </td>
+                <td><strong>{{ r.beneficiary_count }}</strong> people</td>
+                <td><i class="fas fa-clock text-warning"></i> {{ r.estimated_pickup_time }}</td>
+                <td>
+                  <span class="status-pill status-available">{{ r.match_score }}%</span>
+                </td>
+                <td>
+                  {% if r.status == 'Pending' %}
+                    <span class="status-pill status-requested">Pending</span>
+                  {% elif r.status == 'Approved' %}
+                    <span class="status-pill status-claimed">Approved / Transit</span>
+                  {% elif r.status == 'Completed' %}
+                    <span class="status-pill status-redistributed">Completed</span>
+                  {% else %}
+                    <span class="status-pill status-cancelled">{{ r.status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form action="{{ url_for('update_request_status') }}" method="POST" style="display: flex; gap: 0.35rem;" class="no-spin">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <select name="new_status" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                      <option value="Pending" {% if r.status == 'Pending' %}selected{% endif %}>Pending</option>
+                      <option value="Approved" {% if r.status == 'Approved' %}selected{% endif %}>Approve Dispatch</option>
+                      <option value="Completed" {% if r.status == 'Completed' %}selected{% endif %}>Mark Completed</option>
+                      <option value="Rejected" {% if r.status == 'Rejected' %}selected{% endif %}>Reject</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem;" title="Update">
+                      <i class="fas fa-check"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: PREDICTION AUDIT LOG -->
+    <div id="predictionsTab" class="tab-content" style="display: none;">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Food Category</th>
+              <th>Venue Type</th>
+              <th>Prep Qty (kg)</th>
+              <th>Meals (Prep / Consumed)</th>
+              <th>Predicted Surplus</th>
+              <th>Risk Level</th>
+              <th>Recommended Action</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in predictions %}
+              <tr>
+                <td>#PRED-{{ p.id }}</td>
+                <td><span class="tag">{{ p.food_type }}</span></td>
+                <td>{{ p.event_type }}</td>
+                <td><strong>{{ p.quantity_prepared_kg }} kg</strong></td>
+                <td>{{ p.meals_prepared }} / {{ p.meals_consumed }}</td>
+                <td>
+                  <strong style="color: var(--accent-orange); font-size: 1.05rem;">
+                    {{ p.predicted_surplus_kg }} kg
+                  </strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">(~{{ p.predicted_surplus_meals }} meals)</div>
+                </td>
+                <td>
+                  <span class="status-pill status-{{ 'available' if p.waste_risk_level == 'Low' else ('requested' if p.waste_risk_level == 'Moderate' else 'cancelled') }}">
+                    {{ p.waste_risk_level }}
+                  </span>
+                </td>
+                <td style="max-width: 280px; font-size: 0.8rem; line-height: 1.4;">
+                  {{ p.recommended_action }}
+                </td>
+                <td style="font-size: 0.78rem; color: var(--text-muted);">
+                  {{ p.created_at[:16] }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: USERS & ORGANIZATIONS -->
+    <div id="usersTab" class="tab-content" style="display: none;">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Organization</th>
+              <th>Role</th>
+              <th>Contact Person</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>City</th>
+              <th>Registered On</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+              <tr>
+                <td>#USR-{{ u.id }}</td>
+                <td>
+                  <strong>{{ u.org_name }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">Username: @{{ u.username }}</div>
+                </td>
+                <td>
+                  <span class="role-badge {{ u.role }}">{{ u.role }}</span>
+                </td>
+                <td>{{ u.contact_person }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.phone }}</td>
+                <td>{{ u.city }}</td>
+                <td style="font-size: 0.8rem; color: var(--text-muted);">{{ u.created_at[:10] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function switchAdminTab(tabId, btn) {
+  // Hide all contents
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  // Reset tab button styles
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.style.color = 'var(--text-muted)';
+    b.style.borderBottomColor = 'transparent';
+    b.classList.remove('active');
+  });
+  
+  // Show target tab
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = 'block';
+  
+  // Highlight active button
+  btn.style.color = 'var(--primary-green)';
+  btn.style.borderBottomColor = 'var(--primary-green)';
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

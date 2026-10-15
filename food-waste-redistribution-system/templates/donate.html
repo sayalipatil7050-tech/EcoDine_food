@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Donate Surplus Food | EcoDine AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Header -->
+  <div style="max-width: 800px; margin-bottom: 2rem;">
+    <div class="section-tag">
+      <i class="fas fa-hand-holding-heart"></i> Food Rescue Portal
+    </div>
+    <h1 class="section-title">List Surplus Food for Donation</h1>
+    <p class="section-desc">
+      Connect your surplus meals with verified NGOs, student food pantries, and local shelters. 
+      Submitted listings become instantly visible on the <strong>Smart Redistribution Network</strong>.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 2rem; align-items: start;" class="donate-grid">
+    
+    <!-- Left Column: Donation Submission Form -->
+    <div class="form-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700;">
+          <i class="fas fa-clipboard-check text-success"></i> Food Listing Details
+        </h3>
+        <span style="font-size: 0.8rem; color: var(--text-muted);"><span class="req">*</span> Required Fields</span>
+      </div>
+
+      <form action="{{ url_for('donate') }}" method="POST">
+        <div class="form-grid">
+          
+          <!-- Food Title -->
+          <div class="form-group full-width">
+            <label class="form-label">Food Title / Description <span class="req">*</span></label>
+            <input type="text" name="food_title" class="form-control" 
+                   placeholder="e.g., Vegetable Biryani & Dal Makhani, Fresh Sandwich Platters"
+                   value="{{ form_data.food_title if form_data else (prefill.food_title or '') }}" required>
+            <div class="form-hint">State the main items clearly so recipient shelters can plan distribution.</div>
+          </div>
+
+          <!-- Food Category -->
+          <div class="form-group">
+            <label class="form-label">Food Category <span class="req">*</span></label>
+            <select name="food_type" class="form-control" required>
+              {% set sel_type = form_data.food_type if form_data else prefill.food_type %}
+              <option value="Cooked Meals" {% if sel_type == 'Cooked Meals' %}selected{% endif %}>Cooked Meals</option>
+              <option value="Bakery & Bread" {% if sel_type == 'Bakery & Bread' %}selected{% endif %}>Bakery & Bread</option>
+              <option value="Fresh Produce" {% if sel_type == 'Fresh Produce' %}selected{% endif %}>Fresh Produce (Vegetables & Fruits)</option>
+              <option value="Dairy & Sweets" {% if sel_type == 'Dairy & Sweets' %}selected{% endif %}>Dairy & Sweets</option>
+              <option value="Packaged / Dry Rations" {% if sel_type == 'Packaged / Dry Rations' %}selected{% endif %}>Packaged / Dry Rations</option>
+              <option value="Beverages" {% if sel_type == 'Beverages' %}selected{% endif %}>Beverages</option>
+            </select>
+          </div>
+
+          <!-- Dietary Type -->
+          <div class="form-group">
+            <label class="form-label">Dietary Classification <span class="req">*</span></label>
+            <select name="dietary_type" class="form-control" required>
+              <option value="Vegetarian" {% if form_data and form_data.dietary_type == 'Vegetarian' %}selected{% endif %}>100% Vegetarian</option>
+              <option value="Vegan" {% if form_data and form_data.dietary_type == 'Vegan' %}selected{% endif %}>Vegan</option>
+              <option value="Non-Vegetarian" {% if form_data and form_data.dietary_type == 'Non-Vegetarian' %}selected{% endif %}>Non-Vegetarian</option>
+              <option value="Jain Available" {% if form_data and form_data.dietary_type == 'Jain Available' %}selected{% endif %}>Jain Compatible (No onion/garlic)</option>
+            </select>
+          </div>
+
+          <!-- Quantity in Kilograms -->
+          <div class="form-group">
+            <label class="form-label">Quantity in Kilograms (kg) <span class="req">*</span></label>
+            <input type="number" step="0.5" min="0.5" max="3000" name="quantity_kg" class="form-control"
+                   placeholder="e.g. 25.0"
+                   value="{{ form_data.quantity_kg if form_data else (prefill.quantity_kg or '') }}" required>
+          </div>
+
+          <!-- Estimated Meals -->
+          <div class="form-group">
+            <label class="form-label">Estimated Servings / Meals <span class="req">*</span></label>
+            <input type="number" min="1" max="10000" name="estimated_meals" class="form-control"
+                   placeholder="e.g. 60"
+                   value="{{ form_data.estimated_meals if form_data else (prefill.estimated_meals or '') }}" required>
+          </div>
+
+          <!-- Storage Requirement -->
+          <div class="form-group full-width">
+            <label class="form-label">Storage & Handling Requirement <span class="req">*</span></label>
+            <select name="storage_requirement" class="form-control" required>
+              <option value="Room Temperature">Room Temperature (Ambient Storage)</option>
+              <option value="Refrigerated (Cold Chain)">Refrigerated (Cold Chain / Chilled Transport)</option>
+              <option value="Hot Holding">Hot Holding (Insulated Warm Transport)</option>
+              <option value="Frozen">Frozen</option>
+            </select>
+            <div class="form-hint">Allows matching with recipients possessing suitable vehicles and equipment.</div>
+          </div>
+
+          <!-- Preparation Date & Time -->
+          <div class="form-group">
+            <label class="form-label">Preparation Date & Time <span class="req">*</span></label>
+            <input type="datetime-local" name="prep_datetime" class="form-control"
+                   value="{{ form_data.prep_datetime if form_data else default_prep }}" required>
+          </div>
+
+          <!-- Expiry / Safe-Use Deadline -->
+          <div class="form-group">
+            <label class="form-label">Safe Consumption Deadline <span class="req">*</span></label>
+            <input type="datetime-local" name="expiry_datetime" class="form-control"
+                   value="{{ form_data.expiry_datetime if form_data else default_expiry }}" required>
+            <div class="form-hint">Must be consumed before this time.</div>
+          </div>
+
+          <!-- Section Break: Donor & Pickup Location -->
+          <div class="form-group full-width" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 0.5rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-green); margin-bottom: 0.25rem;">
+              <i class="fas fa-map-marker-alt"></i> Donor & Pickup Information
+            </h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Where and how recipient volunteers will collect the food.
+            </p>
+          </div>
+
+          <!-- Donor Name -->
+          <div class="form-group">
+            <label class="form-label">Contact Person Name <span class="req">*</span></label>
+            <input type="text" name="donor_name" class="form-control" placeholder="e.g. Chef Sundar Rajan"
+                   value="{{ form_data.donor_name if form_data else (user_defaults.donor_name or '') }}" required>
+          </div>
+
+          <!-- Organization Name -->
+          <div class="form-group">
+            <label class="form-label">Donor Facility / Organization <span class="req">*</span></label>
+            <input type="text" name="org_name" class="form-control" placeholder="e.g. Apex Central Canteen"
+                   value="{{ form_data.org_name if form_data else (user_defaults.org_name or '') }}" required>
+          </div>
+
+          <!-- Contact Phone -->
+          <div class="form-group">
+            <label class="form-label">Contact Phone Number <span class="req">*</span></label>
+            <input type="tel" name="contact_phone" class="form-control" placeholder="e.g. +91 98450 12345"
+                   value="{{ form_data.contact_phone if form_data else (user_defaults.contact_phone or '') }}" required>
+          </div>
+
+          <!-- Contact Email -->
+          <div class="form-group">
+            <label class="form-label">Contact Email Address</label>
+            <input type="email" name="contact_email" class="form-control" placeholder="e.g. canteen@apexuniv.edu"
+                   value="{{ form_data.contact_email if form_data else (user_defaults.contact_email or '') }}">
+          </div>
+
+          <!-- City -->
+          <div class="form-group">
+            <label class="form-label">City / Zone <span class="req">*</span></label>
+            <input type="text" name="city" class="form-control" placeholder="e.g. Metro City"
+                   value="{{ form_data.city if form_data else (user_defaults.city or 'Metro City') }}" required>
+          </div>
+
+          <!-- Pickup Address -->
+          <div class="form-group full-width">
+            <label class="form-label">Detailed Pickup Address & Instructions <span class="req">*</span></label>
+            <textarea name="pickup_address" class="form-control" placeholder="e.g., Campus East Kitchen Dock 2, Gate 4. Report to Chef's office." required>{{ form_data.pickup_address if form_data else (user_defaults.pickup_address or '') }}</textarea>
+          </div>
+
+          <!-- Special Handling Notes -->
+          <div class="form-group full-width">
+            <label class="form-label">Special Handling or Packaging Notes</label>
+            <textarea name="notes" class="form-control" style="min-height: 70px;"
+                      placeholder="e.g., Packed in stainless food warmers. Please bring your own food-grade containers or bins for transfer.">{{ form_data.notes if form_data else '' }}</textarea>
+          </div>
+
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+            <i class="fas fa-check-circle"></i> Submit Food Listing & Route to NGOs
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Food Safety Guidelines & Information -->
+    <div>
+      <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-cream); border: 1px solid var(--border-color);">
+        <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-green); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-shield-virus"></i> Safe Food Rescue Protocol
+        </h4>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.88rem; color: var(--text-main);">
+          <li style="display: flex; gap: 0.6rem;">
+            <i class="fas fa-temperature-high text-danger" style="margin-top: 0.2rem;"></i>
+            <span><strong>Hot Food:</strong> Must be maintained above 60°C or cooled within 2 hours to 5°C.</span>
+          </li>
+          <li style="display: flex; gap: 0.6rem;">
+            <i class="fas fa-snowflake text-primary" style="margin-top: 0.2rem;"></i>
+            <span><strong>Chilled Items:</strong> Keep between 0°C - 5°C to preserve shelf-life for evening distribution.</span>
+          </li>
+          <li style="display: flex; gap: 0.6rem;">
+            <i class="fas fa-box text-success" style="margin-top: 0.2rem;"></i>
+            <span><strong>Packaging:</strong> Use clean, food-grade food trays, clean containers, or sealed liners.</span>
+          </li>
+          <li style="display: flex; gap: 0.6rem;">
+            <i class="fas fa-clock text-warning" style="margin-top: 0.2rem;"></i>
+            <span><strong>Expiry Time:</strong> Never donate food that has exceeded its safe sensory or bacterial lifespan.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--accent-orange);">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem;">
+          <i class="fas fa-network-wired text-orange"></i> How Redistribution Works:
+        </h4>
+        <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+          Once submitted, our <strong>Smart Redistribution Algorithm</strong> scores incoming NGO recipients by travel proximity, storage compatibility, and beneficiary count.
+        </p>
+        <div style="font-size: 0.85rem; background: #ffffff; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <i class="fas fa-bell text-success"></i> Registered NGOs in your area receive instantaneous notification to claim the food.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+@media (max-width: 900px) {
+  .donate-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}
